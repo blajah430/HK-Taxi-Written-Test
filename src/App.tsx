@@ -32,6 +32,7 @@ export default function App() {
   const [mode, setMode] = useState<'mock' | 'practice'>('mock');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'ALL'>('ALL');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ show: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
   const [examState, setExamState] = useState<ExamState>({
     questions: [],
     currentQuestionIndex: 0,
@@ -95,19 +96,31 @@ export default function App() {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (window.confirm('確定要清除所有錯題記錄嗎？')) {
-      setMistakeIds([]);
-      localStorage.removeItem(MISTAKES_STORAGE_KEY);
-    }
+    setConfirmModal({
+      show: true,
+      title: '確定要清除所有錯題記錄嗎？',
+      message: '此操作將永久刪除你所有的錯題記錄，且無法恢復。',
+      onConfirm: () => {
+        setMistakeIds([]);
+        localStorage.removeItem(MISTAKES_STORAGE_KEY);
+        setConfirmModal(null);
+      }
+    });
   };
 
   const clearProgress = () => {
-    if (window.confirm('確定要清除所有學習進度（包括已答對題目）嗎？')) {
-      setMistakeIds([]);
-      setCorrectIds([]);
-      localStorage.removeItem(MISTAKES_STORAGE_KEY);
-      localStorage.removeItem(CORRECT_STORAGE_KEY);
-    }
+    setConfirmModal({
+      show: true,
+      title: '確定要清除所有學習進度嗎？',
+      message: '此操作將重置你所有的學習數據，包括已掌握題目和錯題記錄。',
+      onConfirm: () => {
+        setMistakeIds([]);
+        setCorrectIds([]);
+        localStorage.removeItem(MISTAKES_STORAGE_KEY);
+        localStorage.removeItem(CORRECT_STORAGE_KEY);
+        setConfirmModal(null);
+      }
+    });
   };
 
   const downloadProgress = () => {
@@ -371,10 +384,10 @@ export default function App() {
   }, [examState]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#FDFCFB] text-[#1A1A1A] font-sans selection:bg-red-100 overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#FDFCFB] text-[#1A1A1A] font-sans selection:bg-red-100 overflow-hidden" dir="rtl">
       {/* Header */}
       {view !== 'home' && (
-        <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-6 py-4 flex justify-between items-center">
+        <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-6 py-3 flex justify-between items-center" dir="ltr">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setShowExitConfirm(true)}>
             <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-200">
               <ShieldCheck size={24} />
@@ -392,14 +405,18 @@ export default function App() {
         </header>
       )}
 
-      <main className={`mx-auto px-6 py-4 transition-all duration-500 flex-1 overflow-y-auto w-full ${
+      <main className={`flex-1 overflow-y-auto w-full transition-all duration-500 ${
         view === 'exam' ? 'overflow-hidden' : ''
-      } ${
-        (view === 'exam' && (examState.questions[examState.currentQuestionIndex]?.category === 'PLACES' || examState.questions[examState.currentQuestionIndex]?.category === 'ROUTES') && practiceFeedback.isCorrect === true)
-          ? 'max-w-[1600px]' 
-          : 'max-w-7xl'
       }`}>
-        <AnimatePresence mode="wait">
+        <div 
+          dir="ltr"
+          className={`mx-auto px-6 py-2 min-h-full flex flex-col ${
+            (view === 'exam' && (examState.questions[examState.currentQuestionIndex]?.category === 'PLACES' || examState.questions[examState.currentQuestionIndex]?.category === 'ROUTES') && practiceFeedback.isCorrect === true)
+              ? 'max-w-[1600px]' 
+              : 'max-w-screen-2xl'
+          }`}
+        >
+          <AnimatePresence mode="wait">
           {view === 'home' && (
             <motion.div 
               key="home"
@@ -656,30 +673,37 @@ export default function App() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="flex flex-col h-full space-y-4"
+              className="flex flex-col h-full space-y-3"
             >
               {/* Exam Header & Progress */}
-              <header className="flex flex-col gap-4">
+              <header className="flex flex-col gap-2">
                 <div className="flex justify-between items-end">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md bg-stone-900 text-white text-[10px] font-black uppercase tracking-widest">
+                      <button 
+                        onClick={() => setShowExitConfirm(true)}
+                        className="flex items-center gap-1 text-stone-400 hover:text-stone-900 transition-colors mr-2"
+                      >
+                        <ChevronLeft size={16} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">退出</span>
+                      </button>
+                      <span className="px-1.5 py-0.5 rounded-md bg-stone-900 text-white text-[9px] font-black uppercase tracking-widest">
                         {mode === 'mock' ? '模擬考試' : '專項練習'}
                       </span>
                       {mode === 'mock' && (
-                        <div className="flex items-center gap-1.5 text-stone-900 font-black text-sm">
-                          <Timer size={16} className={timeLeft < 300 ? 'text-red-600 animate-pulse' : ''} />
+                        <div className="flex items-center gap-1 text-stone-900 font-black text-xs">
+                          <Timer size={14} className={timeLeft < 300 ? 'text-red-600 animate-pulse' : ''} />
                           {formatTime(timeLeft)}
                         </div>
                       )}
                     </div>
-                    <h2 className="text-xl font-black text-stone-900">
+                    <h2 className="text-base font-black text-stone-900">
                       題目 {examState.currentQuestionIndex + 1} <span className="text-stone-300">/ {examState.questions.length}</span>
                     </h2>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">完成進度</div>
-                    <div className="text-lg font-black text-stone-900">{Math.round(((examState.currentQuestionIndex + 1) / examState.questions.length) * 100)}%</div>
+                    <div className="text-[9px] font-black text-stone-400 uppercase tracking-widest">完成進度</div>
+                    <div className="text-base font-black text-stone-900">{Math.round(((examState.currentQuestionIndex + 1) / examState.questions.length) * 100)}%</div>
                   </div>
                 </div>
                 <div className="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
@@ -693,8 +717,8 @@ export default function App() {
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1 overflow-hidden">
                 {/* Question Card */}
-                <div className={`${(examState.questions[examState.currentQuestionIndex].category === 'PLACES' || examState.questions[examState.currentQuestionIndex].category === 'ROUTES') && practiceFeedback.isCorrect === true ? 'lg:col-span-5' : 'lg:col-span-12'} bg-white p-6 rounded-[2rem] border border-stone-100 shadow-sm space-y-6 transition-all h-full flex flex-col overflow-y-auto`}>
-                  <div className="space-y-4">
+                <div className={`${(examState.questions[examState.currentQuestionIndex].category === 'PLACES' || examState.questions[examState.currentQuestionIndex].category === 'ROUTES') && practiceFeedback.isCorrect === true ? 'lg:col-span-5' : 'lg:col-span-12 max-w-2xl mx-auto w-full'} bg-white p-5 rounded-[2rem] border border-stone-100 shadow-sm space-y-4 transition-all h-full flex flex-col overflow-y-auto`}>
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="px-3 py-1 rounded-full bg-stone-50 text-stone-400 text-[10px] font-black uppercase tracking-widest border border-stone-100">
                         {examState.questions[examState.currentQuestionIndex].category === 'REGULATIONS' && '的士則例'}
@@ -703,7 +727,7 @@ export default function App() {
                         {examState.questions[examState.currentQuestionIndex].category === 'ROAD_CODE' && '道路守則'}
                       </span>
                     </div>
-                    <h3 className="text-2xl font-black text-stone-900 leading-tight tracking-tight">
+                    <h3 className="text-xl font-black text-stone-900 leading-tight tracking-tight">
                       {examState.questions[examState.currentQuestionIndex].question}
                     </h3>
                   </div>
@@ -732,7 +756,7 @@ export default function App() {
                           key={idx}
                           onClick={() => handleAnswer(idx)}
                           disabled={mode === 'practice' && practiceFeedback.isCorrect === true}
-                          className={`w-full p-4 rounded-xl text-left transition-all border-2 flex items-center justify-between group font-bold ${buttonClass}`}
+                          className={`w-full p-3.5 rounded-xl text-left transition-all border-2 flex items-center justify-between group font-bold ${buttonClass}`}
                         >
                           <span className="text-sm">{option}</span>
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0
@@ -870,7 +894,7 @@ export default function App() {
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="max-w-4xl mx-auto space-y-12"
+              className="max-w-3xl mx-auto space-y-8"
             >
               {/* Result Header */}
               <section className="text-center space-y-8 py-12">
@@ -985,7 +1009,7 @@ export default function App() {
               key="review"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-4xl mx-auto space-y-12"
+              className="max-w-3xl mx-auto space-y-8"
             >
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
@@ -1000,7 +1024,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 max-w-2xl mx-auto w-full">
                 {examState.questions.map((q, i) => {
                   const isCorrect = examState.userAnswers[i] === q.answer;
                   return (
@@ -1063,7 +1087,13 @@ export default function App() {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
+
+          {/* Footer */}
+          <footer className="mt-auto border-t border-stone-100 py-4 px-6 text-center text-stone-400 text-sm">
+            <p>© 2026 的士筆試 1 Take Pass | 根據運輸署官方資料編製</p>
+          </footer>
+        </div>
       </main>
 
       {/* Exit Confirmation Modal */}
@@ -1081,15 +1111,15 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl space-y-8"
+              className="relative bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl"
             >
               <div className="space-y-4 text-center">
                 <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
                   <AlertCircle size={32} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-stone-900">確定要退出嗎？</h3>
-                  <p className="text-stone-500 font-medium">
+                <div className="relative h-20 p-4">
+                  <h3 className="absolute top-0 left-0 text-2xl font-black text-stone-900">確定要退出嗎？</h3>
+                  <p className="absolute bottom-0 left-0 text-stone-500 font-medium">
                     目前的練習進度將不會被保存。
                   </p>
                 </div>
@@ -1116,10 +1146,52 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-stone-100 py-12 px-6 text-center text-stone-400 text-sm">
-        <p>© 2026 的士筆試 1 Take Pass | 根據運輸署官方資料編製</p>
-      </footer>
+      {/* Generic Confirmation Modal */}
+      <AnimatePresence>
+        {confirmModal?.show && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmModal(null)}
+              className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl space-y-8"
+            >
+              <div className="space-y-4 text-center">
+                <div className="w-16 h-16 bg-stone-50 text-stone-900 rounded-2xl flex items-center justify-center mx-auto">
+                  <AlertCircle size={32} />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-stone-900">{confirmModal.title}</h3>
+                  <p className="text-stone-500 font-medium">
+                    {confirmModal.message}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => setConfirmModal(null)}
+                  className="py-4 rounded-2xl bg-stone-100 text-stone-600 font-black hover:bg-stone-200 transition-colors uppercase tracking-widest text-xs"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={confirmModal.onConfirm}
+                  className="py-4 rounded-2xl bg-stone-900 text-white font-black hover:bg-stone-800 transition-colors shadow-lg shadow-stone-100 uppercase tracking-widest text-xs"
+                >
+                  確定
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
