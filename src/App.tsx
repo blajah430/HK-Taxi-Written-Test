@@ -44,7 +44,8 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME_LIMIT);
   const [mistakeIds, setMistakeIds] = useState<string[]>([]);
   const [correctIds, setCorrectIds] = useState<string[]>([]);
-  const [practiceFeedback, setPracticeFeedback] = useState<{ isCorrect: boolean | null, selectedIdx: number | null }>({ isCorrect: null, selectedIdx: null });
+  const [practiceFeedback, setPracticeFeedback] = useState<{ isCorrect: boolean | null, selectedIdxs: number[] }>({ isCorrect: null, selectedIdxs: [] });
+  const [visitCount, setVisitCount] = useState<number | null>(null);
 
   // Load progress from localStorage
   useEffect(() => {
@@ -56,6 +57,18 @@ export default function App() {
     if (savedCorrect) {
       try { setCorrectIds(JSON.parse(savedCorrect)); } catch (e) { console.error(e); }
     }
+  }, []);
+
+  // Fetch visit count
+  useEffect(() => {
+    fetch('https://api.counterapi.dev/v1/taxi1takepass/visits/up')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.count) {
+          setVisitCount(data.count);
+        }
+      })
+      .catch(err => console.error('Failed to fetch visit count:', err));
   }, []);
 
   // Save progress to localStorage
@@ -249,7 +262,7 @@ export default function App() {
     setMode(examMode);
     setView('exam');
     setTimeLeft(EXAM_TIME_LIMIT);
-    setPracticeFeedback({ isCorrect: null, selectedIdx: null });
+    setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
   };
 
   const startMistakesReview = () => {
@@ -268,7 +281,7 @@ export default function App() {
     });
     setMode('practice');
     setView('exam');
-    setPracticeFeedback({ isCorrect: null, selectedIdx: null });
+    setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
   };
 
   const handleAnswer = (optionIndex: number) => {
@@ -276,7 +289,7 @@ export default function App() {
     const isCorrect = optionIndex === currentQuestion.answer;
 
     if (mode === 'practice') {
-      setPracticeFeedback({ isCorrect, selectedIdx: optionIndex });
+      setPracticeFeedback(prev => ({ isCorrect, selectedIdxs: [...(prev.selectedIdxs || []), optionIndex] }));
       if (!isCorrect) {
         addMistake(currentQuestion.id);
       } else {
@@ -300,14 +313,14 @@ export default function App() {
   const nextQuestion = () => {
     if (examState.currentQuestionIndex < examState.questions.length - 1) {
       setExamState({ ...examState, currentQuestionIndex: examState.currentQuestionIndex + 1 });
-      setPracticeFeedback({ isCorrect: null, selectedIdx: null });
+      setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
     }
   };
 
   const prevQuestion = () => {
     if (examState.currentQuestionIndex > 0) {
       setExamState({ ...examState, currentQuestionIndex: examState.currentQuestionIndex - 1 });
-      setPracticeFeedback({ isCorrect: null, selectedIdx: null });
+      setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
     }
   };
 
@@ -384,10 +397,10 @@ export default function App() {
   }, [examState]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#FDFCFB] text-[#1A1A1A] font-sans selection:bg-red-100 overflow-hidden" dir="rtl">
+    <div className="h-screen flex flex-col bg-[#FDFCFB] text-[#1A1A1A] font-sans selection:bg-red-100 overflow-hidden">
       {/* Header */}
       {view !== 'home' && (
-        <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-6 py-3 flex justify-between items-center" dir="ltr">
+        <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setShowExitConfirm(true)}>
             <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-200">
               <ShieldCheck size={24} />
@@ -409,7 +422,6 @@ export default function App() {
         view === 'exam' ? 'overflow-hidden' : ''
       }`}>
         <div 
-          dir="ltr"
           className={`mx-auto px-6 py-2 min-h-full flex flex-col ${
             (view === 'exam' && (examState.questions[examState.currentQuestionIndex]?.category === 'PLACES' || examState.questions[examState.currentQuestionIndex]?.category === 'ROUTES') && practiceFeedback.isCorrect === true)
               ? 'max-w-[1600px]' 
@@ -445,8 +457,8 @@ export default function App() {
                       <span className="text-red-600 italic serif">1 Take Pass</span>
                     </h2>
                     <p className="text-stone-500 text-lg max-w-md leading-relaxed font-medium">
-                      精準收錄全港 230+ 地方試題及最新路線規劃，<br />
-                      以數據驅動的學習方式，助你高效通關。
+                      收錄全港 230+ 地方試題及最新路線規劃，<br />
+                      以數據驅動的學習方式，助你高效溫習。
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4">
@@ -465,7 +477,7 @@ export default function App() {
                         </div>
                       ))}
                       <div className="pl-6 text-xs font-bold text-stone-400 uppercase tracking-widest">
-                        已有 12,400+ 位考生使用
+                        已有 {visitCount !== null ? visitCount.toLocaleString() : '12,400+'} 位考生使用
                       </div>
                     </div>
                   </div>
@@ -664,6 +676,35 @@ export default function App() {
                   </a>
                 </div>
               </section>
+
+              {/* Buy me a 罐罐 Section */}
+              <section className="mt-16 bg-stone-900 text-white rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden relative">
+                <div className="relative z-10 space-y-4 max-w-md">
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight">Buy me a 罐罐 🐱</h3>
+                  <p className="text-stone-400 font-medium leading-relaxed">
+                    如果你覺得呢個網有用，歡迎Payme投餵小金金，讓金金實現罐罐自由！
+                  </p>
+                  <a 
+                    href="https://payme.hsbc/0fb7da876a08476b89013125af211394" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#E52443] hover:bg-[#c41e38] text-white rounded-xl font-black transition-colors shadow-lg shadow-red-900/20"
+                  >
+                    PayMe 贊助 <ChevronRight size={18} />
+                  </a>
+                </div>
+                <div className="relative z-10 w-full max-w-[240px] aspect-square rounded-3xl overflow-hidden border-4 border-stone-800 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
+                  {/* Note: Please upload your cat image to the public folder and name it cat.jpg */}
+                  <img 
+                    src="public/Cat.png" 
+                    alt="Cat" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                {/* Decorative background elements */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-stone-800 rounded-full blur-3xl opacity-50 pointer-events-none" />
+              </section>
             </motion.div>
           )}
 
@@ -735,15 +776,15 @@ export default function App() {
                   <div className="space-y-2 flex-1">
                     {examState.questions[examState.currentQuestionIndex].options.map((option, idx) => {
                       const isSelected = examState.userAnswers[examState.currentQuestionIndex] === idx;
-                      const isPracticeSelected = practiceFeedback.selectedIdx === idx;
+                      const isPracticeSelected = practiceFeedback.selectedIdxs?.includes(idx);
                       const isCorrect = idx === examState.questions[examState.currentQuestionIndex].answer;
                       
                       let buttonClass = 'border-stone-50 hover:border-stone-200 bg-stone-50/50 text-stone-600';
                       if (mode === 'practice') {
-                        if (practiceFeedback.selectedIdx !== null) {
+                        if (isPracticeSelected) {
                           if (isCorrect) {
                             buttonClass = 'border-emerald-500 bg-emerald-50 text-emerald-900';
-                          } else if (isPracticeSelected) {
+                          } else {
                             buttonClass = 'border-red-500 bg-red-50 text-red-900';
                           }
                         }
@@ -760,10 +801,10 @@ export default function App() {
                         >
                           <span className="text-sm">{option}</span>
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0
-                            ${(practiceFeedback.selectedIdx !== null && isCorrect) ? 'border-emerald-500 bg-emerald-500 text-white' : 
+                            ${(isPracticeSelected && isCorrect) ? 'border-emerald-500 bg-emerald-500 text-white' : 
                               (isSelected && mode !== 'practice') ? 'border-white bg-white text-stone-900' :
                               (isPracticeSelected && !isCorrect) ? 'border-red-500 bg-red-500 text-white' : 'border-stone-200 bg-white'}`}>
-                            {(isSelected || (practiceFeedback.selectedIdx !== null && isCorrect)) && <CheckCircle2 size={12} />}
+                            {(isSelected || (isPracticeSelected && isCorrect)) && <CheckCircle2 size={12} />}
                             {(isPracticeSelected && !isCorrect) && <XCircle size={12} />}
                           </div>
                         </button>
@@ -1113,15 +1154,15 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl"
             >
-              <div className="space-y-4 text-center">
-                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
-                  <AlertCircle size={32} />
-                </div>
-                <div className="relative h-20 p-4">
-                  <h3 className="absolute top-0 left-0 text-2xl font-black text-stone-900">確定要退出嗎？</h3>
-                  <p className="absolute bottom-0 left-0 text-stone-500 font-medium">
-                    目前的練習進度將不會被保存。
-                  </p>
+              <div className="flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center">
+                <AlertCircle size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-stone-900">確定要退出嗎</h3>
+                <p className="text-stone-500 font-medium leading-relaxed pb-4">  {/* pb-4 明顯空行 */}
+                  目前的練習進度將不會被保存
+                </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
