@@ -199,20 +199,20 @@ export default function App() {
     return () => clearInterval(timer);
   }, [view, mode, examState.isFinished]);
 
-  const startExam = (examMode: 'mock' | 'practice', category: Category | 'ALL' = 'ALL') => {
-    const shuffle = <T,>(array: T[]): T[] => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
+  const shuffle = <T,>(array: T[]): T[] => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
 
-    const prioritizeQuestions = (pool: Question[]) => {
+  const startExam = (examMode: 'mock' | 'practice', category: Category | 'ALL' = 'ALL') => {
+    const prioritizeQuestions = (pool: Question[], shuffleOptions: boolean) => {
       const neverAnswered = pool.filter(q => !mistakeIds.includes(q.id) && !correctIds.includes(q.id));
       const mistakes = pool.filter(q => mistakeIds.includes(q.id));
-      const correct = pool.filter(q => correctIds.includes(q.id));
+      const correct = pool.filter(q => correctIds.includes(q.id) && !mistakeIds.includes(q.id));
       
       const shuffledPool = [
         ...shuffle(neverAnswered),
@@ -220,26 +220,24 @@ export default function App() {
         ...shuffle(correct)
       ];
 
-      // Shuffle options for each question
-      return shuffledPool.map(q => {
-        const originalAnswer = q.options[q.answer];
-        const shuffledOptions = shuffle(q.options);
-        const newAnswerIdx = shuffledOptions.indexOf(originalAnswer);
-        return {
-          ...q,
-          options: shuffledOptions,
-          answer: newAnswerIdx
-        };
-      });
+      if (shuffleOptions) {
+        return shuffledPool.map(q => {
+          const options = shuffle([...q.options]);
+          const answerIdx = options.indexOf(q.options[q.answer]);
+          return { ...q, options, answer: answerIdx };
+        });
+      }
+
+      return shuffledPool;
     };
 
     let questions: Question[] = [];
     if (examMode === 'mock') {
       // Official mock test: 40 Part A (30 Reg, 9 Places, 1 Route), 35 Part B (Road Code)
-      const regs = prioritizeQuestions(TAXI_REGULATIONS).slice(0, 30);
-      const places = prioritizeQuestions(PLACES).slice(0, 9);
-      const routes = prioritizeQuestions(ROUTES).slice(0, 1);
-      const roadCode = prioritizeQuestions(ROAD_CODE).slice(0, 35);
+      const regs = prioritizeQuestions(TAXI_REGULATIONS, true).slice(0, 30);
+      const places = prioritizeQuestions(PLACES, true).slice(0, 9);
+      const routes = prioritizeQuestions(ROUTES, true).slice(0, 1);
+      const roadCode = prioritizeQuestions(ROAD_CODE, true).slice(0, 35);
       // Shuffle the final set of questions to ensure variety in order
       questions = shuffle([...regs, ...places, ...routes, ...roadCode]);
     } else {
@@ -248,7 +246,7 @@ export default function App() {
         ? [...ALL_QUESTIONS]
         : ALL_QUESTIONS.filter(q => q.category === category);
       
-      questions = prioritizeQuestions(pool);
+      questions = prioritizeQuestions(pool, false);
     }
 
     setExamState({
@@ -266,7 +264,7 @@ export default function App() {
   };
 
   const startMistakesReview = () => {
-    const questions = ALL_QUESTIONS.filter(q => mistakeIds.includes(q.id));
+    const questions = shuffle(ALL_QUESTIONS.filter(q => mistakeIds.includes(q.id)));
     if (questions.length === 0) {
       alert('目前沒有錯題記錄！');
       return;
@@ -293,7 +291,9 @@ export default function App() {
       if (!isCorrect) {
         addMistake(currentQuestion.id);
       } else {
-        addCorrect(currentQuestion.id);
+        if (practiceFeedback.selectedIdxs.length === 0) {
+          addCorrect(currentQuestion.id);
+        }
         const newUserAnswers = [...examState.userAnswers];
         newUserAnswers[examState.currentQuestionIndex] = optionIndex;
         setExamState({ ...examState, userAnswers: newUserAnswers });
@@ -422,7 +422,9 @@ export default function App() {
         view === 'exam' ? 'overflow-hidden' : ''
       }`}>
         <div 
-          className={`mx-auto px-6 py-2 min-h-full flex flex-col ${
+          className={`mx-auto px-6 py-2 flex flex-col ${
+            view === 'exam' ? 'h-full' : 'min-h-full'
+          } ${
             (view === 'exam' && (examState.questions[examState.currentQuestionIndex]?.category === 'PLACES' || examState.questions[examState.currentQuestionIndex]?.category === 'ROUTES') && practiceFeedback.isCorrect === true)
               ? 'max-w-[1600px]' 
               : 'max-w-screen-2xl'
@@ -682,7 +684,7 @@ export default function App() {
                 <div className="relative z-10 space-y-4 max-w-md">
                   <h3 className="text-3xl md:text-4xl font-black tracking-tight">Buy me a 罐罐 🐱</h3>
                   <p className="text-stone-400 font-medium leading-relaxed">
-                    如果你覺得呢個網有用，歡迎Payme投餵小金金，讓金金實現罐罐自由！
+                    如果你覺得呢個app有用，歡迎Payme投餵小金金，讓金金實現罐罐自由！
                   </p>
                   <a 
                     href="https://payme.hsbc/0fb7da876a08476b89013125af211394" 
@@ -804,7 +806,7 @@ export default function App() {
                             ${(isPracticeSelected && isCorrect) ? 'border-emerald-500 bg-emerald-500 text-white' : 
                               (isSelected && mode !== 'practice') ? 'border-white bg-white text-stone-900' :
                               (isPracticeSelected && !isCorrect) ? 'border-red-500 bg-red-500 text-white' : 'border-stone-200 bg-white'}`}>
-                            {(isSelected || (isPracticeSelected && isCorrect)) && <CheckCircle2 size={12} />}
+                            {((isSelected && mode !== 'practice') || (isPracticeSelected && isCorrect)) && <CheckCircle2 size={12} />}
                             {(isPracticeSelected && !isCorrect) && <XCircle size={12} />}
                           </div>
                         </button>
@@ -896,34 +898,34 @@ export default function App() {
               </div>
 
               {/* Navigation */}
-              <footer className="flex justify-between items-center py-4 border-t border-stone-100">
+              <footer className="flex justify-between items-center py-2 border-t border-stone-100 shrink-0 mt-2">
                 <button
                   onClick={prevQuestion}
                   disabled={examState.currentQuestionIndex === 0}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-stone-400 hover:text-stone-900 disabled:opacity-30 transition-colors uppercase tracking-widest text-[10px]"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg font-black text-stone-400 hover:text-stone-900 disabled:opacity-30 transition-colors uppercase tracking-widest text-[10px]"
                 >
-                  <ChevronLeft size={18} /> 上一題
+                  <ChevronLeft size={16} /> 上一題
                 </button>
                 
                 {examState.currentQuestionIndex === examState.questions.length - 1 ? (
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={finishExam}
                     disabled={mode === 'practice' && practiceFeedback.isCorrect !== true}
-                    className="px-8 py-3 rounded-xl bg-stone-900 text-white font-black shadow-xl shadow-stone-200 hover:bg-black transition-all disabled:opacity-30 uppercase tracking-widest text-[10px]"
+                    className="px-5 py-2 rounded-lg bg-stone-900 text-white font-black shadow-md shadow-stone-200 hover:bg-black transition-all disabled:opacity-30 uppercase tracking-widest text-[10px]"
                   >
                     提交卷宗
                   </motion.button>
                 ) : (
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={nextQuestion}
                     disabled={mode === 'practice' && practiceFeedback.isCorrect !== true}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-stone-900 text-white font-black shadow-xl shadow-stone-200 hover:bg-black transition-all disabled:opacity-30 uppercase tracking-widest text-[10px]"
+                    className="flex items-center gap-1 px-5 py-2 rounded-lg bg-stone-900 text-white font-black shadow-md shadow-stone-200 hover:bg-black transition-all disabled:opacity-30 uppercase tracking-widest text-[10px]"
                   >
-                    下一題 <ChevronRight size={18} />
+                    下一題 <ChevronRight size={16} />
                   </motion.button>
                 )}
               </footer>
