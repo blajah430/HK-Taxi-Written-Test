@@ -229,41 +229,9 @@ export const ROUTES: Question[] = [
   { id: 'route-12', category: 'ROUTES', question: '由 荃灣荃豐中心 駛至 新蒲崗香港考試及評核局，最直接經哪些道路？', options: ['青山公路葵涌段及龍翔道', '呈祥道', '大埔道', '界限街'], answer: 0 },
   { id: 'route-13', category: 'ROUTES', question: '由 紅磡置富都會 駛至 北角廉政公署總部大樓，最直接經哪條隧道？', options: ['紅磡海底隧道', '東區海底隧道', '西區海底隧道', '中環及灣仔繞道'], answer: 0 },
   { id: 'route-14', category: 'ROUTES', question: '由 九龍塘香港浸會大學大學會堂 駛至 灣仔鷹君中心，最直接經哪條隧道？', options: ['紅磡海底隧道', '西區海底隧道', '東區海底隧道', '獅子山隧道'], answer: 0 },
-  { id: 'route-15', category: 'ROUTES', question: '由 九龍公共圖書館 駛至 跑馬地馬場，最直接經哪條隧道？', options: ['紅磡海底隧道', '西區海底隧道', '東區海底隧道', '香港仔隧道'], answer: 0 },
+  { id: 'route-15', category: 'ROUTES', question: '由 九龍公共圖書館 駛至 跑馬地馬場，最直接經哪條隧道？', options: ['紅磡海底隧道', '西區海底隧道', '東區海底隧道', '香港仔隧道'], answer: 0 }];
 
-  // 30 Additional high-quality routes
-  { id: 'route-16', category: 'ROUTES', question: '由 屯門市廣場 駛至 尖沙咀海港城，最直接及快捷的路線需途經哪些主要道路？', options: ["大欖隧道、龍翔道及窩打老道", "青山公路、呈祥道及大埔道", "屯門公路、西九龍公路及連翔道"], answer: 2 },
-  { id: 'route-17', category: 'ROUTES', question: '由 大埔中心 駛至 觀塘創紀之城，最直接需途經哪條隧道？', options: ["尖山隧道（八號幹線）", "獅子山隧道", "大老山隧道"], answer: 2 },
-  { id: 'route-18', category: 'ROUTES', question: '由 元朗朗屏邨 駛至 銅鑼灣時代廣場，最快捷直接的路線需途經哪些隧道？', options: ["大老山隧道及紅磡海底隧道", "大欖隧道及西區海底隧道", "城門隧道及東區海底隧道"], answer: 1 },
-  { id: 'route-19', category: 'ROUTES', question: '由 將軍澳新都城 駛至 柴灣杏花邨，最直接的路線需途經：', options: ["清水灣道、太子道東及西區海底隧道", "寶琳路、觀塘繞道及紅磡海底隧道", "將軍澳隧道或將藍隧道，及東區海底隧道"], answer: 2 },
-  { id: 'route-20', category: 'ROUTES', question: '由 荃灣悅來酒店 駛至 上環港澳碼頭，最直接經哪些道路及隧道？', options: ["荃灣路、西九龍公路及西區海底隧道", "青山公路、龍翔道及紅磡海底隧道", "呈祥道、大埔道及西區海底隧道"], answer: 0 },
-  { id: 'route-21', category: 'ROUTES', question: '由 沙田第一城 駛至 尖沙咀K11（河內道），最直接經哪些隧道及道路？', options: ["大老山隧道、東區海底隧道及紅磡海底隧道", "獅子山隧道、窩打老道及公主道", "城門隧道、荃灣路及西九龍公路"], answer: 1 },
-  { id: 'route-22', category: 'ROUTES', question: '由 鴨脷洲海怡半島 駛至 旺角朗豪坊，最標準及直接的路線通常途經：', options: ["東區海底隧道及觀塘繞道", "獅子山隧道及窩打老道", "香港仔隧道及紅磡海底隧道"], answer: 2 },
-  { id: 'route-23', category: 'ROUTES', question: '由 柴灣小西灣邨 駛至 觀塘APM，最直接經哪條海底隧道？', options: ["東區海底隧道", "西區海底隧道", "紅磡海底隧道"], answer: 0 },
-  { id: 'route-24', category: 'ROUTES', question: '由 葵涌石籬邨 駛至 尖沙咀天星碼頭，最直接經哪些道路？', options: ["大埔公路、龍翔道及彌敦道", "青山公路、葵涌道及荔枝角道", "呈祥道、西九龍公路及廣東道"], answer: 1 },
-  { id: 'route-25', category: 'ROUTES', question: '由 粉嶺名都 駛至 觀塘裕民坊，最直接經哪些公路或隧道？', options: ["林錦公路、城門隧道及獅子山隧道", "大埔公路、尖山隧道及紅磡海底隧道", "粉嶺公路、吐露港公路及大老山隧道"], answer: 2 },
-  { id: 'route-26', category: 'ROUTES', question: '由 馬鞍山耀安邨 駛至 灣仔會議展覽中心，最直接的路線需途經哪些隧道？', options: ["城門隧道及紅磡海底隧道", "大老山隧道及東區海底隧道", "獅子山隧道及西區海底隧道"], answer: 1 },
-  { id: 'route-27', category: 'ROUTES', question: '由 屯門良景邨 駛至 旺角始創中心，最直接經哪些道路？', options: ["屯門公路、荃灣路及荔枝角道", "青山公路、呈祥道及彌敦道", "大欖隧道、龍翔道及窩打老道"], answer: 0 },
-  { id: 'route-28', category: 'ROUTES', question: '由 元朗錦綉花園 駛至 尖沙咀中港城，最快捷直接經哪些道路？', options: ["屯門公路、荃灣路及廣東道", "粉嶺公路、吐露港公路及獅子山隧道", "新田公路、大欖隧道及西九龍公路"], answer: 2 },
-  { id: 'route-29', category: 'ROUTES', question: '由 大埔太和邨 駛至 銅鑼灣崇光百貨，最直接的路線通常途經：', options: ["吐露港公路、大老山隧道及東區海底隧道", "大埔公路、尖山隧道及西區海底隧道", "林錦公路、大欖隧道及西區海底隧道"], answer: 0 },
-  { id: 'route-30', category: 'ROUTES', question: '由 荃灣綠楊新邨 駛至 中環國際金融中心，最快捷直接經哪些道路及隧道？', options: ["青山公路、長沙灣道及紅磡海底隧道", "城門隧道、窩打老道及東區海底隧道", "荃灣路、西九龍公路及西區海底隧道"], answer: 2 },
-  { id: 'route-31', category: 'ROUTES', question: '由 沙田新城市廣場 駛至 觀塘工業區，最直接經哪條隧道出九龍？', options: ["獅子山隧道", "城門隧道", "大老山隧道"], answer: 2 },
-  { id: 'route-32', category: 'ROUTES', question: '由 藍田平田邨 駛至 銅鑼灣維多利亞公園，最直接經哪條海底隧道？', options: ["紅磡海底隧道", "西區海底隧道", "東區海底隧道"], answer: 2 },
-  { id: 'route-33', category: 'ROUTES', question: '由 秀茂坪寶達邨 駛至 尖沙咀文化中心，最直接經哪條隧道？', options: ["啟德隧道", "東區海底隧道", "大老山隧道"], answer: 0 },
-  { id: 'route-34', category: 'ROUTES', question: '由 黃大仙中心 駛至 灣仔入境事務大樓，最直接經哪條海底隧道？', options: ["紅磡海底隧道", "東區海底隧道", "西區海底隧道"], answer: 0 },
-  { id: 'route-35', category: 'ROUTES', question: '由 深水埗富昌邨 駛至 港鐵上水站，最直接經哪些道路及隧道？', options: ["尖山隧道、吐露港公路及粉嶺公路", "大埔道、城門隧道及林錦公路", "龍翔道、獅子山隧道及大埔公路"], answer: 0 },
-  { id: 'route-36', category: 'ROUTES', question: '由 青衣長亨邨 駛至 旺角花園街，最直接經哪些道路？', options: ["呈祥道、大埔道及彌敦道", "青衣北橋、龍翔道及窩打老道", "青荃路、荃灣路及荔枝角道"], answer: 2 },
-  { id: 'route-37', category: 'ROUTES', question: '由 屯門黃金海岸 駛至 尖沙咀麼地道，最直接經哪些公路？', options: ["屯門公路及西九龍公路", "大欖隧道及獅子山隧道", "青山公路及大埔道"], answer: 0 },
-  { id: 'route-38', category: 'ROUTES', question: '由 元朗形點 駛至 銅鑼灣希慎廣場，最快捷的路線需經哪些隧道？', options: ["尖山隧道及東區海底隧道", "城門隧道及紅磡海底隧道", "大欖隧道及西區海底隧道"], answer: 2 },
-  { id: 'route-39', category: 'ROUTES', question: '由 大埔大埔墟 駛至 觀塘順利邨，最直接經哪些道路及隧道？', options: ["粉嶺公路、林錦公路及龍翔道", "大埔公路、獅子山隧道及太子道東", "吐露港公路、大老山隧道及新清水灣道"], answer: 2 },
-  { id: 'route-40', category: 'ROUTES', question: '由 荃灣愉景新城 駛至 灣仔稅務大樓，最直接通常經哪條過海隧道？', options: ["西區海底隧道", "紅磡海底隧道", "東區海底隧道"], answer: 0 },
-  { id: 'route-41', category: 'ROUTES', question: '由 沙田廣源邨 駛至 尖沙咀海濱公園，出九龍最直接經哪條隧道？', options: ["獅子山隧道", "尖山隧道", "城門隧道"], answer: 0 },
-  { id: 'route-42', category: 'ROUTES', question: '由 鴨脷洲利東邨 駛至 旺角新世紀廣場（MOKO），最直接經哪條隧道過海？', options: ["紅磡海底隧道", "西區海底隧道", "東區海底隧道"], answer: 0 },
-  { id: 'route-43', category: 'ROUTES', question: '由 柴灣興華邨 駛至 觀塘翠屏邨，最直接經哪條隧道過海？', options: ["西區海底隧道", "東區海底隧道", "紅磡海底隧道"], answer: 1 },
-  { id: 'route-44', category: 'ROUTES', question: '由 葵涌安蔭邨 駛至 尖沙咀廣東道，最直接經哪些主要道路？', options: ["和宜合道、呈祥道及彌敦道", "青山公路、葵涌道及西九龍走廊", "大埔公路、龍翔道及漆咸道南"], answer: 1 },
-  { id: 'route-45', category: 'ROUTES', question: '由 粉嶺華明邨 駛至 觀塘開源道，最直接經哪條隧道出九龍？', options: ["獅子山隧道", "大老山隧道", "尖山隧道"], answer: 1 }
-]
-;
+  
 
 export const ROAD_CODE: Question[] = [
   { id: 'road-1', category: 'ROAD_CODE', question: '在正常行車情況下，你與前車應保持多少安全距離？', options: ["兩秒鐘的行車距離", "一秒鐘的行車距離", "三秒鐘的行車距離"], answer: 0 },

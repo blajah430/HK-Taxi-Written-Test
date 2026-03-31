@@ -37,6 +37,7 @@ export default function App() {
     questions: [],
     currentQuestionIndex: 0,
     userAnswers: [],
+    practiceSelections: [],
     isFinished: false,
     startTime: null,
     endTime: null,
@@ -253,6 +254,7 @@ export default function App() {
       questions,
       currentQuestionIndex: 0,
       userAnswers: new Array(questions.length).fill(null),
+      practiceSelections: Array.from({ length: questions.length }, () => []),
       isFinished: false,
       startTime: Date.now(),
       endTime: null,
@@ -273,6 +275,7 @@ export default function App() {
       questions,
       currentQuestionIndex: 0,
       userAnswers: new Array(questions.length).fill(null),
+      practiceSelections: Array.from({ length: questions.length }, () => []),
       isFinished: false,
       startTime: Date.now(),
       endTime: null,
@@ -287,16 +290,28 @@ export default function App() {
     const isCorrect = optionIndex === currentQuestion.answer;
 
     if (mode === 'practice') {
-      setPracticeFeedback(prev => ({ isCorrect, selectedIdxs: [...(prev.selectedIdxs || []), optionIndex] }));
+      const newSelectedIdxs = [...(practiceFeedback.selectedIdxs || []), optionIndex];
+      setPracticeFeedback({ isCorrect, selectedIdxs: newSelectedIdxs });
+      
+      const newUserAnswers = [...examState.userAnswers];
+      const newPracticeSelections = [...examState.practiceSelections];
+      
+      // Record the FIRST answer in userAnswers
+      if (newUserAnswers[examState.currentQuestionIndex] === null) {
+        newUserAnswers[examState.currentQuestionIndex] = optionIndex;
+      }
+      
+      // Record all selections for this question
+      newPracticeSelections[examState.currentQuestionIndex] = newSelectedIdxs;
+      
+      setExamState({ ...examState, userAnswers: newUserAnswers, practiceSelections: newPracticeSelections });
+
       if (!isCorrect) {
         addMistake(currentQuestion.id);
       } else {
         if (practiceFeedback.selectedIdxs.length === 0) {
           addCorrect(currentQuestion.id);
         }
-        const newUserAnswers = [...examState.userAnswers];
-        newUserAnswers[examState.currentQuestionIndex] = optionIndex;
-        setExamState({ ...examState, userAnswers: newUserAnswers });
       }
     } else {
       const newUserAnswers = [...examState.userAnswers];
@@ -312,15 +327,35 @@ export default function App() {
 
   const nextQuestion = () => {
     if (examState.currentQuestionIndex < examState.questions.length - 1) {
-      setExamState({ ...examState, currentQuestionIndex: examState.currentQuestionIndex + 1 });
-      setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
+      const nextIdx = examState.currentQuestionIndex + 1;
+      setExamState({ ...examState, currentQuestionIndex: nextIdx });
+      
+      // Restore practice feedback if previously answered
+      if (mode === 'practice' && examState.practiceSelections[nextIdx]?.length > 0) {
+        const selections = examState.practiceSelections[nextIdx];
+        const lastSelection = selections[selections.length - 1];
+        const isCorrect = lastSelection === examState.questions[nextIdx].answer;
+        setPracticeFeedback({ isCorrect, selectedIdxs: selections });
+      } else {
+        setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
+      }
     }
   };
 
   const prevQuestion = () => {
     if (examState.currentQuestionIndex > 0) {
-      setExamState({ ...examState, currentQuestionIndex: examState.currentQuestionIndex - 1 });
-      setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
+      const prevIdx = examState.currentQuestionIndex - 1;
+      setExamState({ ...examState, currentQuestionIndex: prevIdx });
+      
+      // Restore practice feedback if previously answered
+      if (mode === 'practice' && examState.practiceSelections[prevIdx]?.length > 0) {
+        const selections = examState.practiceSelections[prevIdx];
+        const lastSelection = selections[selections.length - 1];
+        const isCorrect = lastSelection === examState.questions[prevIdx].answer;
+        setPracticeFeedback({ isCorrect, selectedIdxs: selections });
+      } else {
+        setPracticeFeedback({ isCorrect: null, selectedIdxs: [] });
+      }
     }
   };
 
@@ -1093,7 +1128,9 @@ export default function App() {
                       
                       <div className="grid grid-cols-1 gap-3">
                         {q.options.map((opt, optIdx) => {
-                          const isUserAnswer = examState.userAnswers[i] === optIdx;
+                          const isUserAnswer = mode === 'practice' 
+                            ? examState.practiceSelections[i]?.includes(optIdx)
+                            : examState.userAnswers[i] === optIdx;
                           const isCorrectAnswer = optIdx === q.answer;
                           
                           let itemClass = 'bg-stone-50 text-stone-500 border-transparent';

@@ -13,6 +13,7 @@ export interface ExamState {
   questions: Question[];
   currentQuestionIndex: number;
   userAnswers: (number | null)[];
+  practiceSelections: number[][];
   isFinished: boolean;
   startTime: number | null;
   endTime: number | null;
